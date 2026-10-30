@@ -10,7 +10,7 @@ export default function TripGate({ phase, next }: { phase: TripPhase; next: stri
   return (
     <div className="narrow stack">
       {phase === 'loading' && <Mascot mood="searching" text="여행 방을 여는 중이에요" />}
-      {phase === 'login' && <LoginForm next={next} intro="이 방을 보려면 이메일로 로그인해 주세요." />}
+      {phase === 'login' && <LoginForm next={next} intro="이 방을 보려면 로그인해 주세요." />}
       {phase === 'none' && (
         <>
           <Mascot mood="trouble" text="이 방의 참여자가 아니에요. 방장에게 초대 링크를 받아 주세요." />

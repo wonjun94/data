@@ -1,7 +1,24 @@
--- 여행 같이 고르기: Supabase 대시보드 > SQL Editor에 통째로 붙여 넣고 Run.
--- 테이블 4개(trips, members, places, opinions) + 접근 규칙(RLS) + 방 만들기·참여 함수 + Realtime 설정.
+-- 떠날지도: Supabase 대시보드 > SQL Editor에 통째로 붙여 넣고 Run.
+-- 테이블 5개(profiles, trips, members, places, opinions) + 접근 규칙(RLS) + 방 만들기·참여 함수 + Realtime 설정.
+--
+-- 예전 버전(이메일 로그인)을 이미 실행했다면 아래 다섯 줄의 주석(--)을 지우고 먼저 실행해 초기화하세요. 데이터가 모두 지워집니다.
+-- drop table if exists public.opinions, public.places, public.members, public.trips, public.profiles cascade;
+-- drop function if exists public.is_member(uuid), public.is_owner(uuid), public.place_trip(uuid), public.trip_preview(text);
+-- drop function if exists public.create_trip(text, text, double precision, double precision, int, text, text[], text);
+-- drop function if exists public.create_trip(text, text, double precision, double precision, int, text, text[]);
+-- drop function if exists public.join_trip(text, text), public.join_trip(text);
 
 -- ───────────────────────── 테이블 ─────────────────────────
+
+-- 계정: 닉네임 + 비밀번호로 가입. 비밀번호는 Supabase Auth가 보관하고, 여기에는 닉네임과 관리자 여부만 둔다.
+-- 가입·관리자 지정은 서버(service_role)만 할 수 있다.
+create table public.profiles (
+  id         uuid primary key references auth.users(id) on delete cascade,
+  nickname   text not null check (char_length(nickname) between 2 and 20),
+  is_admin   boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create unique index profiles_nickname_uniq on public.profiles (lower(nickname));
 
 create table public.trips (
   id          uuid primary key default gen_random_uuid(),
@@ -84,6 +101,12 @@ $$;
 -- 로그인한 사용자에게 테이블 권한을 주되, 실제로 무엇을 할 수 있는지는 아래 정책이 정한다
 grant select, insert, delete on public.trips, public.members, public.places, public.opinions to authenticated;
 grant update on public.trips to authenticated;
+grant select on public.profiles to authenticated;
+
+-- profiles: 자기 계정만 읽기. 쓰기는 서버(service_role)만.
+alter table public.profiles enable row level security;
+create policy profiles_select on public.profiles for select
+  using (id = auth.uid());
 
 alter table public.trips    enable row level security;
 alter table public.members  enable row level security;
@@ -140,17 +163,18 @@ grant update (vote) on public.opinions to authenticated;
 
 create function public.create_trip(
   p_destination text, p_country text, p_lat double precision, p_lon double precision,
-  p_days int, p_budget text, p_style_tags text[], p_nickname text
+  p_days int, p_budget text, p_style_tags text[]
 ) returns uuid
 language plpgsql security definer set search_path = public as $$
-declare t uuid;
+declare t uuid; nick text;
 begin
-  if auth.uid() is null then raise exception 'login required'; end if;
+  select nickname into nick from profiles where id = auth.uid();
+  if nick is null then raise exception 'login required'; end if;
   insert into trips (owner_id, destination, country, lat, lon, days, budget, style_tags)
   values (auth.uid(), p_destination, p_country, p_lat, p_lon, p_days, p_budget, p_style_tags)
   returning id into t;
   insert into members (trip_id, user_id, nickname, role, status)
-  values (t, auth.uid(), p_nickname, 'owner', 'approved');
+  values (t, auth.uid(), nick, 'owner', 'approved');
   return t;
 end $$;
 
@@ -165,29 +189,25 @@ language sql security definer stable set search_path = public as $$
   where t.invite_code = p_code
 $$;
 
-create function public.join_trip(p_code text, p_nickname text) returns uuid
+create function public.join_trip(p_code text) returns uuid
 language plpgsql security definer set search_path = public as $$
-declare t uuid; n int;
+declare t uuid; n int; nick text;
 begin
-  if auth.uid() is null then raise exception 'login required'; end if;
+  select nickname into nick from profiles where id = auth.uid();
+  if nick is null then raise exception 'login required'; end if;
   select id into t from trips where invite_code = p_code;
   if t is null then raise exception 'invalid invite'; end if;
-  if not exists (select 1 from members where trip_id = t and user_id = auth.uid()) then
-    select count(*) into n from members where trip_id = t and status <> 'rejected';
-    if n >= 6 then raise exception 'room full'; end if;
-  end if;
-  insert into members (trip_id, user_id, nickname)
-  values (t, auth.uid(), p_nickname)
-  on conflict (trip_id, user_id) do update
-    set nickname = excluded.nickname
-    where members.status = 'pending';
+  if exists (select 1 from members where trip_id = t and user_id = auth.uid()) then return t; end if;
+  select count(*) into n from members where trip_id = t and status <> 'rejected';
+  if n >= 6 then raise exception 'room full'; end if;
+  insert into members (trip_id, user_id, nickname) values (t, auth.uid(), nick);
   return t;
 end $$;
 
-revoke execute on function public.create_trip(text, text, double precision, double precision, int, text, text[], text) from public, anon;
-revoke execute on function public.join_trip(text, text) from public, anon;
-grant execute on function public.create_trip(text, text, double precision, double precision, int, text, text[], text) to authenticated;
-grant execute on function public.join_trip(text, text) to authenticated;
+revoke execute on function public.create_trip(text, text, double precision, double precision, int, text, text[]) from public, anon;
+revoke execute on function public.join_trip(text) from public, anon;
+grant execute on function public.create_trip(text, text, double precision, double precision, int, text, text[]) to authenticated;
+grant execute on function public.join_trip(text) to authenticated;
 grant execute on function public.trip_preview(text) to anon, authenticated;
 
 -- ───────────────────────── 실시간 반영(Realtime) ─────────────────────────

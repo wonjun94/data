@@ -1,33 +1,33 @@
-/* 1950년대 여행 포스터 감성: 크림색 종이, 짙은 잉크, 산호색 포인트. 지구본 색은 기존 테마 여행 지구본에서 가져옴 */
+/* 하늘색 테마: 맑은 하늘 배경, 짙은 남색 잉크, 하늘빛 파랑 포인트. 지구본 색은 기존 테마 여행 지구본에서 가져옴 */
 :root {
-  --bg: #F3EDE1; --surface: #FFFDF8; --ink: #1E2A33; --muted: #5E6A72; --line: #DCD3C2;
-  --accent: #D2492A; --accent-ink: #FFFFFF; --accent-soft: #F7DED4; --teal: #0E8F8A;
-  --ok: #3E8E3A; --warn: #B7791F; --error: #B3261E;
-  --ocean: #C9DEE6; --ocean-deep: #A9C8D4; --land: #FBF8F0; --border: #C3CDC9; --grat: rgba(22,35,46,.07); --halo: rgba(120,170,190,.35);
+  --bg: #E8F4FC; --surface: #FFFFFF; --ink: #10314D; --muted: #4F6B84; --line: #C6DDEE;
+  --accent: #1877C9; --accent-ink: #FFFFFF; --accent-soft: #D6EBFA; --teal: #0E6FB8;
+  --ok: #2E8B57; --warn: #B7791F; --error: #C0392B; --danger: #C0392B;
+  --ocean: #BFE0F5; --ocean-deep: #8EC5EA; --land: #FFFFFF; --border: #A9C9DE; --grat: rgba(16,49,77,.08); --halo: rgba(110,185,240,.4);
   --t-relax: #0E8F8A; --t-sight: #C0841A; --t-adv: #D2492A; --t-nature: #3E8E3A; --t-film: #7A4FC4;
   --f-display: "Gowun Batang", "Noto Serif KR", serif;
   --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
   --radius: 14px;
-  --shadow: 0 10px 30px -20px rgba(40, 30, 10, .45);
+  --shadow: 0 10px 30px -20px rgba(16, 70, 120, .45);
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #12171C; --surface: #1B232B; --ink: #ECE6DA; --muted: #9AA6AE; --line: #2E3A45;
-    --accent: #F07355; --accent-ink: #1B1210; --accent-soft: #3A2520; --teal: #3CC7BF;
-    --ok: #74C46C; --warn: #E8B04A; --error: #FF8A80;
-    --ocean: #12283A; --ocean-deep: #0B1C2A; --land: #2C3E4C; --border: #40576A; --grat: rgba(230,237,242,.06); --halo: rgba(80,150,200,.25);
+    --bg: #0A1828; --surface: #112638; --ink: #E4F1FC; --muted: #93B0C8; --line: #23425E;
+    --accent: #5BB5F2; --accent-ink: #062036; --accent-soft: #163A57; --teal: #6CC4F5;
+    --ok: #6CC48C; --warn: #E8B04A; --error: #FF8A80; --danger: #FF8A80;
+    --ocean: #12304A; --ocean-deep: #0A2036; --land: #2A4A66; --border: #3E6382; --grat: rgba(228,241,252,.06); --halo: rgba(90,170,235,.28);
     --t-relax: #3CC7BF; --t-sight: #E8B04A; --t-adv: #F07355; --t-nature: #74C46C; --t-film: #A98BEA;
     --shadow: 0 10px 30px -18px rgba(0, 0, 0, .7);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #12171C; --surface: #1B232B; --ink: #ECE6DA; --muted: #9AA6AE; --line: #2E3A45;
-  --accent: #F07355; --accent-ink: #1B1210; --accent-soft: #3A2520; --teal: #3CC7BF;
-  --ok: #74C46C; --warn: #E8B04A; --error: #FF8A80;
-  --ocean: #12283A; --ocean-deep: #0B1C2A; --land: #2C3E4C; --border: #40576A; --grat: rgba(230,237,242,.06); --halo: rgba(80,150,200,.25);
+  --bg: #0A1828; --surface: #112638; --ink: #E4F1FC; --muted: #93B0C8; --line: #23425E;
+  --accent: #5BB5F2; --accent-ink: #062036; --accent-soft: #163A57; --teal: #6CC4F5;
+  --ok: #6CC48C; --warn: #E8B04A; --error: #FF8A80; --danger: #FF8A80;
+  --ocean: #12304A; --ocean-deep: #0A2036; --land: #2A4A66; --border: #3E6382; --grat: rgba(228,241,252,.06); --halo: rgba(90,170,235,.28);
   --t-relax: #3CC7BF; --t-sight: #E8B04A; --t-adv: #F07355; --t-nature: #74C46C; --t-film: #A98BEA;
   --shadow: 0 10px 30px -18px rgba(0, 0, 0, .7);
   color-scheme: dark;
@@ -74,7 +74,8 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
   max-width: 1240px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px;
   padding: max(10px, env(safe-area-inset-top)) 0 10px; border-bottom: 2px solid var(--ink);
 }
-.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; font-family: var(--f-display); font-weight: 700; font-size: 18px; }
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; font-family: var(--f-display); font-weight: 700; font-size: 18px; min-width: 0; }
+.brand span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topbar-right { display: flex; align-items: center; gap: 10px; min-width: 0; }
 
 /* 버튼 */
@@ -226,6 +227,24 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
 .confirmed li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 8px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
 .steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
 .steps a { color: var(--teal); }
+
+/* 로그인·관리 */
+.segmented.two { grid-template-columns: repeat(2, 1fr); min-width: 220px; }
+.segmented.two button { padding: 9px 6px; font-weight: 600; }
+.btn.danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+.btn.danger:hover:not(:disabled) { background: var(--danger); color: #fff; }
+.row-gap { display: flex; gap: 8px; align-items: center; }
+.admin-search { max-width: 340px; }
+.table-wrap { overflow-x: auto; background: var(--surface); border: 2px solid var(--ink); border-radius: var(--radius); }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.admin-table th, .admin-table td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: middle; }
+.admin-table th { font-size: 12px; color: var(--muted); font-weight: 600; background: var(--accent-soft); }
+.admin-table tbody tr:hover { background: var(--accent-soft); }
+.admin-table .num { text-align: right; font-family: var(--f-mono); }
+.admin-table .actions { text-align: right; }
+.admin-table .actions .btn + .btn { margin-left: 6px; }
+.admin-table .wrap-cell { white-space: normal; min-width: 180px; max-width: 360px; overflow-wrap: anywhere; }
+.admin-table input[type="checkbox"] { width: 16px; height: 16px; }
 
 @media (max-width: 900px) {
   .home-grid, .board-grid { grid-template-columns: minmax(0, 1fr); }

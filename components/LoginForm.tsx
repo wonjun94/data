@@ -1,59 +1,88 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import Mascot from './Mascot'
 
-// 비밀번호 없는 이메일 매직 링크 로그인. 로그인 후 next 주소로 돌아온다.
+// 닉네임 + 비밀번호 로그인·회원가입. 성공하면 next 주소로 이동한다.
 export default function LoginForm({ next, intro }: { next: string; intro?: string }) {
-  const [email, setEmail] = useState('')
-  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [nickname, setNickname] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    setState('sending')
-    const redirect = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
-    const { error } = await createClient().auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: redirect },
-    })
-    if (error) {
-      setError(error.message.includes('rate') ? '메일을 너무 자주 보냈어요. 잠시 후 다시 시도해 주세요.' : error.message)
-      setState('error')
-    } else setState('sent')
+    if (mode === 'signup' && password !== confirm) return setError('비밀번호가 서로 달라요.')
+    setSending(true)
+    setError('')
+    const res = await fetch(`/api/auth/${mode}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ nickname: nickname.trim(), password }),
+    }).catch(() => null)
+    const j = res ? await res.json().catch(() => ({})) : {}
+    if (!res?.ok) {
+      setSending(false)
+      setError(j.error || '잠시 후 다시 시도해 주세요.')
+      return
+    }
+    // 세션 쿠키가 생겼으니 화면 전체를 새로 연다
+    window.location.href = next
   }
 
-  if (state === 'sent')
-    return (
-      <div className="stack">
-        <Mascot mood="celebrate" text="메일을 확인하세요! 받은 링크를 누르면 바로 들어와요." />
-        <p className="muted small">
-          <b>{email}</b>로 로그인 링크를 보냈어요. 메일이 안 보이면 스팸함도 확인해 주세요.
-        </p>
-        <button type="button" className="btn ghost" onClick={() => setState('idle')}>
-          다른 이메일로 받기
-        </button>
-      </div>
-    )
+  function switchMode(m: 'login' | 'signup') {
+    setMode(m)
+    setError('')
+    setConfirm('')
+  }
+
+  const text = error || (mode === 'signup' ? '닉네임과 비밀번호만 정하면 가입 끝이에요.' : intro ?? '닉네임과 비밀번호로 로그인하세요.')
 
   return (
     <form className="stack" onSubmit={submit}>
-      <Mascot mood={state === 'error' ? 'trouble' : 'welcome'} text={state === 'error' ? error : intro ?? '이메일만 있으면 돼요. 비밀번호는 없어요.'} />
+      <div className="segmented two" role="tablist" aria-label="로그인 또는 회원가입">
+        <button type="button" role="tab" aria-selected={mode === 'login'} aria-pressed={mode === 'login'} onClick={() => switchMode('login')}>
+          로그인
+        </button>
+        <button type="button" role="tab" aria-selected={mode === 'signup'} aria-pressed={mode === 'signup'} onClick={() => switchMode('signup')}>
+          회원가입
+        </button>
+      </div>
+      <Mascot mood={error ? 'trouble' : 'welcome'} text={text} />
       <label className="field">
-        <span>이메일</span>
+        <span>닉네임</span>
         <input
-          type="email"
           required
-          autoComplete="email"
-          inputMode="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          minLength={2}
+          maxLength={20}
+          autoComplete="username"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          placeholder="동행에게 보일 이름 (2~20자)"
         />
       </label>
-      <button className="btn primary" disabled={state === 'sending'}>
-        {state === 'sending' ? '보내는 중…' : '로그인 링크 받기'}
+      <label className="field">
+        <span>비밀번호</span>
+        <input
+          type="password"
+          required
+          minLength={mode === 'signup' ? 6 : 1}
+          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder={mode === 'signup' ? '6자 이상' : ''}
+        />
+      </label>
+      {mode === 'signup' && (
+        <label className="field">
+          <span>비밀번호 확인</span>
+          <input type="password" required autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+        </label>
+      )}
+      <button className="btn primary" disabled={sending}>
+        {sending ? '잠시만요…' : mode === 'signup' ? '가입하고 시작하기' : '로그인'}
       </button>
     </form>
   )

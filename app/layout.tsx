@@ -3,7 +3,7 @@ import TopBar from '@/components/TopBar'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: '여행 같이 고르기',
+  title: '떠날지도',
   description: 'AI가 추린 여행 후보를 동행과 함께 고르고, 구글 내 지도로 옮기세요.',
 }
 

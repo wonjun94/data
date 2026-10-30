@@ -28,14 +28,13 @@ export default function JoinPage() {
     if (p.my_status === 'approved') return router.replace(`/trip/${p.trip_id}`)
     if (p.my_status === 'pending') return setPhase('waiting')
     if (p.my_status === 'rejected') return setPhase('rejected')
-    setPhase((cur) => (cur === 'form' ? cur : 'form'))
+    const { data: me } = await sb.from('profiles').select('nickname').eq('id', u.user.id).maybeSingle()
+    setNickname(me?.nickname ?? '')
+    setPhase('form')
   }, [code, router])
 
   useEffect(() => {
     check()
-    try {
-      setNickname(localStorage.getItem('tt-nick') || '')
-    } catch {}
   }, [check])
 
   // 승인 대기 중이면 몇 초마다 확인하다가 승인되면 보드로 이동
@@ -45,15 +44,10 @@ export default function JoinPage() {
     return () => clearInterval(t)
   }, [phase, check])
 
-  async function join(e: React.FormEvent) {
-    e.preventDefault()
-    if (!nickname.trim()) return
+  async function join() {
     setSending(true)
     setError('')
-    try {
-      localStorage.setItem('tt-nick', nickname.trim())
-    } catch {}
-    const { error } = await createClient().rpc('join_trip', { p_code: code, p_nickname: nickname.trim() })
+    const { error } = await createClient().rpc('join_trip', { p_code: code })
     setSending(false)
     if (error) {
       setError(error.message.includes('room full') ? '이 방은 이미 6명이 꽉 찼어요.' : '참여 신청에 실패했어요. 잠시 후 다시 시도해 주세요.')
@@ -73,19 +67,15 @@ export default function JoinPage() {
 
       {phase === 'loading' && <Mascot mood="searching" text="초대장을 확인하고 있어요" />}
       {phase === 'invalid' && <Mascot mood="trouble" text="초대 링크가 올바르지 않아요. 방장에게 다시 받아 주세요." />}
-      {phase === 'login' && <LoginForm next={`/join/${code}`} intro="먼저 이메일로 로그인해 주세요. 비밀번호는 없어요." />}
+      {phase === 'login' && <LoginForm next={`/join/${code}`} intro="먼저 로그인해 주세요. 처음이면 ‘회원가입’을 누르세요." />}
       {phase === 'form' && (
-        <form className="stack" onSubmit={join}>
-          <Mascot mood="welcome" text="동행들에게 보일 닉네임을 정해 주세요." />
-          <label className="field">
-            <span>닉네임</span>
-            <input required maxLength={20} value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="예: 민지" />
-          </label>
+        <div className="stack">
+          <Mascot mood="welcome" text={`${nickname}님, 이 여행에 참여할까요?`} />
           {error && <p className="error small">{error}</p>}
-          <button className="btn primary" disabled={sending}>
+          <button type="button" className="btn primary" disabled={sending} onClick={join}>
             {sending ? '신청하는 중…' : '참여 신청하기'}
           </button>
-        </form>
+        </div>
       )}
       {phase === 'waiting' && (
         <div className="stack">

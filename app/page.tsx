@@ -17,11 +17,9 @@ type Picked = { id: string; name: string; country: string; lat: number; lon: num
 type MyTrip = { trip_id: string; role: string; status: string; trips: { destination: string; days: number; created_at: string } | null }
 
 const DRAFT_KEY = 'tt-draft'
-const NICK_KEY = 'tt-nick'
-
 function cssVar(name: string) {
-  if (typeof window === 'undefined') return '#1D5F8C'
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#1D5F8C'
+  if (typeof window === 'undefined') return '#1877C9'
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#1877C9'
 }
 
 export default function Home() {
@@ -34,7 +32,6 @@ export default function Home() {
   const [days, setDays] = useState(4)
   const [budget, setBudget] = useState<Budget>('mid')
   const [tags, setTags] = useState<string[]>([])
-  const [nickname, setNickname] = useState('')
   const [userId, setUserId] = useState<string | null | undefined>(undefined)
   const [myTrips, setMyTrips] = useState<MyTrip[]>([])
   const [creating, setCreating] = useState(false)
@@ -51,7 +48,6 @@ export default function Home() {
         setBudget(d.budget ?? 'mid')
         setTags(d.tags ?? [])
       }
-      setNickname(localStorage.getItem(NICK_KEY) || '')
     } catch {}
     setColorTick(1) // CSS 변수 색을 읽을 수 있게 된 뒤 핀 색을 다시 계산
 
@@ -121,11 +117,7 @@ export default function Home() {
   async function create() {
     if (!picked) return
     if (tags.length === 0) return setError('스타일 태그를 1개 이상 골라 주세요.')
-    if (!nickname.trim()) return setError('동행에게 보일 내 닉네임을 적어 주세요.')
     if (!hasSupabaseEnv()) return setError('Supabase 설정이 없어요. .env.local에 Supabase URL과 키를 넣어 주세요.')
-    try {
-      localStorage.setItem(NICK_KEY, nickname.trim())
-    } catch {}
     if (!userId) {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({ picked, days, budget, tags }))
@@ -143,7 +135,6 @@ export default function Home() {
       p_days: days,
       p_budget: budget,
       p_style_tags: tags,
-      p_nickname: nickname.trim(),
     })
     if (error || !data) {
       setCreating(false)
@@ -268,11 +259,6 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-
-              <label className="field">
-                <span>내 닉네임</span>
-                <input maxLength={20} value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="동행에게 보일 이름" />
-              </label>
 
               {error && <p className="error small">{error}</p>}
               <button type="button" className="btn primary lg" onClick={create} disabled={creating}>
