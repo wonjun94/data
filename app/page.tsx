@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import Globe, { type GlobePin } from '@/components/Globe'
 import Mascot from '@/components/Mascot'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, hasSupabaseEnv } from '@/lib/supabase/client'
 import { BUDGETS, BUDGET_LABEL, STYLE_TAGS, THEMES } from '@/lib/constants'
 import destinations from '@/lib/destinations.json'
 import type { Budget, Destination, GeoHit } from '@/lib/types'
@@ -55,6 +55,7 @@ export default function Home() {
     } catch {}
     setColorTick(1) // CSS 변수 색을 읽을 수 있게 된 뒤 핀 색을 다시 계산
 
+    if (!hasSupabaseEnv()) return setUserId(null)
     const sb = createClient()
     sb.auth.getUser().then(async ({ data }) => {
       const uid = data.user?.id ?? null
@@ -121,6 +122,7 @@ export default function Home() {
     if (!picked) return
     if (tags.length === 0) return setError('스타일 태그를 1개 이상 골라 주세요.')
     if (!nickname.trim()) return setError('동행에게 보일 내 닉네임을 적어 주세요.')
+    if (!hasSupabaseEnv()) return setError('Supabase 설정이 없어요. .env.local에 Supabase URL과 키를 넣어 주세요.')
     try {
       localStorage.setItem(NICK_KEY, nickname.trim())
     } catch {}

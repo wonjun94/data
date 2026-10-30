@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, hasSupabaseEnv } from '@/lib/supabase/client'
 import { MascotFigure } from './Mascot'
 
 export default function TopBar() {
   const [email, setEmail] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!hasSupabaseEnv()) return
     const sb = createClient()
     sb.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null))
     const { data } = sb.auth.onAuthStateChange((_e, session) => setEmail(session?.user?.email ?? null))
