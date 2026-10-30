@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import type { Category, Trip } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+// Gemini 응답이 1분을 넘길 때가 있어 Vercel 무료 플랜 한도(300초)까지 기다린다
+export const maxDuration = 300
 
 const CATS: Category[] = ['sight', 'food', 'cafe', 'activity']
 
@@ -82,7 +83,13 @@ export async function POST(req: NextRequest) {
       headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: buildPrompt(trip, count, (existing ?? []).map((p) => p.name)) }] }],
-        generationConfig: { responseMimeType: 'application/json', responseSchema: SCHEMA, temperature: 0.8 },
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: SCHEMA,
+          temperature: 0.8,
+          // 장소 추천은 깊은 추론이 필요 없어 생각 단계를 줄여 응답 시간을 절반 이하로 줄인다
+          thinkingConfig: { thinkingLevel: 'low' },
+        },
       }),
     })
   } catch {
