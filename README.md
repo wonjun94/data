@@ -48,7 +48,7 @@ Next.js(App Router) + Supabase(계정·DB·실시간) + Vercel 배포, 모두 �
    | `ADMIN_NICKNAME` | 관리자 닉네임 (`root`) |
    | `ADMIN_PASSWORD` | 관리자 비밀번호 |
    | `GEMINI_API_KEY` | Gemini 키 (서버 전용) |
-   | `GEMINI_MODEL` | 선택. 기본 `gemini-2.5-flash` |
+   | `GEMINI_MODEL` | 선택. 기본 `gemini-3.8-flash` |
    | `NOMINATIM_EMAIL` | 선택. OpenStreetMap 검색 정책용 연락처 |
 3. **Deploy**.
 

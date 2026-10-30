@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
   const count = taken.size === 0 ? 18 : 8
 
   // 개인정보(이메일·닉네임)는 보내지 않고 여행 조건만 보낸다.
-  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash'
   let res: Response
   try {
     res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
